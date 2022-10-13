@@ -41,8 +41,12 @@ def create_tokenizer(name = 'distilbert-base-uncased'):
 
 #tokenizing the splited text
 def tokenize_function(text, tokenizer):
-    tokenized_inputs = tokenizer(text, truncation = True, padding = 'max_length', max_length = 512,)
-    return tokenized_inputs
+  tokenized_inputs = tokenizer(text, truncation = True, padding = 'max_length', max_length = 512,)
+  return tokenized_inputs
+
+def tokenize_plus(text, tokenizer):
+  tokenized_inputs = tokenizer(text)
+  return tokenized_inputs
 
 #coverting from text or list of text to tokenized inputs
 def text_to_token(text, tokenizer):
@@ -58,6 +62,33 @@ def text_to_token(text, tokenizer):
             tokenized_text.append(tokenized_sentence)
         return tokenized_text
     
+def text_to_token_plus(text, tokenizer):
+    #this function recieve a list of sentences or a list of lists of 
+    #sentences and return a dict with the input ids or a list of a dicts with the inputs ids
+    if (type(text) == str):
+        pure_text = prepare_text(text)
+        tokenized_text = tokenize_plus(pure_text, tokenizer)
+        return tokenized_text
+    if (type(text) == list):
+        tokenized_text = []
+        for sentence in text:
+            pure_text = prepare_text(sentence)
+            tokenized_sentence = tokenize_plus(pure_text, tokenizer)
+            tokenized_text.append(tokenized_sentence)
+        return tokenized_text
+
+def token_to_text(tokens, tokenizer):
+    if (type(tokens)== list):
+        text = []
+        for example in tokens:
+          text_ex = tokenizer.batch_decode(example['input_ids'])
+          text.append(text_ex)
+        return text
+    if (type(tokens) != list):
+        text = tokenizer.batch_decode(tokens['input_ids'])
+        return text
+
+
 """dialogues = data_train.iloc[0:10]['dialog'].values.tolist()
 tokenized_text = text_to_token(dialogues)
 tokenized_text[0]"""
