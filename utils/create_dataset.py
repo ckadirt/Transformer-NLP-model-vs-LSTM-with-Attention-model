@@ -24,6 +24,10 @@ class LSTM_Dataset(Dataset):
     print(tokens['input_ids'])
     data = [torch.tensor(x).float() for x in tokens['input_ids']]
     separator = random.randint(1,len(data)-1)
-    x = data[0:separator]
+    t = data[0:separator]
+    x = torch.tensor([])
+    for sentence in t:
+      x = torch.cat([x,sentence], dim = -1)
+    #x = x.unsqueeze(dim = 1)
     y = data[separator]
     return {'x' : x, 'y' : y}
