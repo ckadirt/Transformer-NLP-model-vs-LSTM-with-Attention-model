@@ -41,7 +41,7 @@ def create_tokenizer(name = 'distilbert-base-uncased'):
 
 #tokenizing the splited text
 def tokenize_function(text, tokenizer):
-  tokenized_inputs = tokenizer(text, truncation = True, padding = 'max_length', max_length = 512,)
+  tokenized_inputs = tokenizer(text, truncation = True, padding = 'max_length', max_length = 1024,)
   return tokenized_inputs
 
 def tokenize_plus(text, tokenizer):
