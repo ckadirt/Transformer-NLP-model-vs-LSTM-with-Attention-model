@@ -69,3 +69,15 @@ class LSTM_uni(nn.Module):
         x[word] = a_1
         #print(candidate.shape, g_u.shape, g_f.shape, c_1.shape, a_1.shape)
     return x, a_0, c_0
+
+class LSTM_singlebi(nn.Module):
+  def __init__(self, out_size, embedding_size = 300):
+    super(LSTM_singlebi, self).__init__()
+    self.out_size = out_size
+    self.LSTM_model = LSTM_single(int(out_size/2), embedding_size = embedding_size)
+
+  def forward(self, x, a0, c0):
+    # pass the x value embedded (batch_size, words, embedding_size)
+    aright, a_0r, c_0r = self.LSTM_model(x, a0, c0)
+    aleft, a_0l, c_0l = self.LSTM_model(torch.flip(x, (1,)),a_0r, c_0r)
+    return torch.cat([aright, aleft], dim = 2), (a_0r,c_0r, a_0l,c_0l)
