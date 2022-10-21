@@ -98,3 +98,48 @@ class Depth_LSTM(nn.Module):
       print(x.shape, 'third')
 
     return x
+
+  class Context_generator(nn.Module):
+  def __init__(self, s_feat, a_feat, word_len):
+    super(Context_generator, self).__init__()
+    self.middle = 1000
+    self.linear1 = nn.Linear(s_feat+a_feat, self.middle)
+    self.linear2 = nn.Linear(self.middle, 1)
+    self.relu = nn.ReLU()
+    self.tahn = nn.Tanh()
+    self.softmax = nn.Softmax(dim = 1)
+  def forward(self, s_prev, a):
+    # a shape = [batch, num_words, features]
+    # s shape = [batch, features]
+    s_prev = s_prev.view(s_prev.shape[0],1, s_prev.shape[1]).repeat(1,a.shape[1],1)
+    concated = torch.cat([a, s_prev], dim = -1)
+    alphas = self.tahn(self.linear1(concated))
+    alphas = self.relu(self.linear2(alphas))
+    alphas = self.softmax(alphas)
+    context = a*alphas
+    return context, alphas
+
+
+class Attention_Decoder(nn.Module):
+  def __init__(self, word_len, output_features, a_features):
+    super(Attention_Decoder, self).__init__()
+    self.word_len = word_len
+    self.output_features = output_features
+    self.a_features = a_features
+    self.get_context = Context_generator(s_feat = output_features, a_feat = a_features, word_len = word_len)
+    self.lstm = LSTM_single(output_features, embedding_size = a_features)
+
+
+  def forward(self, a, s_prev, word_output):
+    # a = [batches, num_words, output_size features]
+    #s_prev = [batches, output_features]
+    #word_output = int, num of the word outputs
+    s_prev = s_prev
+    c0 = torch.zeros_like(a)
+    for word in range(word_output):
+      context, alphas = self.get_context(s_prev, a)
+      lstm
+
+
+
+    return None
