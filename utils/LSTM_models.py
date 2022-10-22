@@ -91,20 +91,21 @@ class Depth_LSTM(nn.Module):
   def forward(self, x, a, c):
     x = self.embedding(x)
     for index, layer in enumerate(self.layers):
-      print(x.shape, 'first')
+      #print(x.shape, 'first')
       x, rest = layer(x, a, c)
-      print(x.shape, 'second')
+      #print(x.shape, 'second')
       x = self.relu(self.linears[index](x))
-      print(x.shape, 'third')
+      #print(x.shape, 'third')
 
     return x
 
-  class Context_generator(nn.Module):
+class Context_generator(nn.Module):
   def __init__(self, s_feat, a_feat, word_len):
     super(Context_generator, self).__init__()
     self.middle = 1000
     self.linear1 = nn.Linear(s_feat+a_feat, self.middle)
     self.linear2 = nn.Linear(self.middle, 1)
+    
     self.relu = nn.ReLU()
     self.tahn = nn.Tanh()
     self.softmax = nn.Softmax(dim = 1)
@@ -116,7 +117,7 @@ class Depth_LSTM(nn.Module):
     alphas = self.tahn(self.linear1(concated))
     alphas = self.relu(self.linear2(alphas))
     alphas = self.softmax(alphas)
-    context = a*alphas
+    context = torch.bmm(alphas.transpose(1,2), a)
     return context, alphas
 
 
@@ -129,17 +130,17 @@ class Attention_Decoder(nn.Module):
     self.get_context = Context_generator(s_feat = output_features, a_feat = a_features, word_len = word_len)
     self.lstm = LSTM_single(output_features, embedding_size = a_features)
 
-
   def forward(self, a, s_prev, word_output):
     # a = [batches, num_words, output_size features]
     #s_prev = [batches, output_features]
     #word_output = int, num of the word outputs
+    final_as = torch.zeros(a.shape[0],word_output,self.output_features)
     s_prev = s_prev
-    c0 = torch.zeros_like(a)
+    c0 = torch.zeros(a.shape[0],s_prev.shape[-1])
     for word in range(word_output):
       context, alphas = self.get_context(s_prev, a)
-      lstm
-
-
-
-    return None
+      #print(context.shape, s_prev.shape, c0.shape)
+      s_prev, s_prevlast, c0 = self.lstm(context, s_prev, c0)
+      s_prev = s_prev.view(a.shape[0],s_prev.shape[-1])
+      #print(s_prev.shape, final_as.shape)
+      final_as[:,word,:] = s_prev
