@@ -24,5 +24,14 @@ for example in dl:
 
   break
 
-def train_model(model, epochs, dataset, learning_rate):
-  pass
+def train_model(model, epochs, dataset, learning_rate, device, optimizer, criterion):
+  for epoch in range(epochs):
+    for batch in dataset:
+      x = batch['x'].to(device)
+      y = batch['y'].to(device)
+      model =  model.to(device)
+      optimizer.zero_grad()
+      y_hat = model(x)
+      loss = criterion(y, y_hat)
+      optimizer.backward()
+      optimizer.step()
