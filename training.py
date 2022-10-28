@@ -23,3 +23,6 @@ for example in dl:
   print(example['x'].shape, example['y'].shape)
 
   break
+
+def train_model(model, epochs, dataset, learning_rate):
+  pass
