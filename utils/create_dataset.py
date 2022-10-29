@@ -1,4 +1,4 @@
-from process_text import create_tokenizer, text_to_token, text_to_token_plus, token_to_text
+from utils.process_text import create_tokenizer, text_to_token, text_to_token_plus, token_to_text
 import pandas as pd
 import torch
 import torch.nn.functional as F
@@ -39,6 +39,7 @@ class LSTM_Dataset(Dataset):
     pad_x = torch.zeros((1024), device=x.device, dtype=x.dtype)
     pad_x[:x.shape[0]] = x
     #print(pad_x.shape)
-    pad_y = torch.zeros((1024), device=y.device, dtype=y.dtype)
+    pad_y = torch.zeros((128), device=y.device, dtype=y.dtype)
     pad_y[:y.shape[0]] = y
     return {'x' : pad_x, 'y' : pad_y}
+

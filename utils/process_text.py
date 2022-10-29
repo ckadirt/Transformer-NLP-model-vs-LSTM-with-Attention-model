@@ -44,6 +44,10 @@ def tokenize_function(text, tokenizer):
   tokenized_inputs = tokenizer(text, truncation = True, padding = 'max_length', max_length = 1024,)
   return tokenized_inputs
 
+def tokenize_function_result(text, tokenizer):
+  tokenized_inputs = tokenizer(text, truncation = True, padding = 'max_length', max_length = 128,)
+  return tokenized_inputs
+
 def tokenize_plus(text, tokenizer):
   tokenized_inputs = tokenizer(text)
   return tokenized_inputs
@@ -81,11 +85,11 @@ def token_to_text(tokens, tokenizer):
     if (type(tokens)== list):
         text = []
         for example in tokens:
-          text_ex = tokenizer.batch_decode(example['input_ids'])
+          text_ex = tokenizer.batch_decode(example)
           text.append(text_ex)
         return text
     if (type(tokens) != list):
-        text = tokenizer.batch_decode(tokens['input_ids'])
+        text = tokenizer.batch_decode(tokens)
         return text
 
 
