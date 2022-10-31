@@ -26,7 +26,7 @@ criterion = nn.BCELoss()
 optimizer_enc = torch.optim.Adam(encoder.parameters())
 
 
-decoder = Attention_Decoder(128,1,400)
+decoder = Attention_Decoder(128,30522,400)
 optimizer_dec = torch.optim.Adam(decoder.parameters())
 
 def batch_train(encoder, decoder, batch, criterion, optimizer_enc, optimizer_dec, device):
