@@ -35,7 +35,7 @@ def batch_train(encoder, decoder, batch, criterion, optimizer_enc, optimizer_dec
   a_init = torch.zeros(x.shape[0],encoder.out_size).to(device)
   c_init = torch.zeros(x.shape[0],encoder.out_size).to(device)
   y = batch['y'].to(device)
-
+  y = F.one_hot(y, num_classes=decoder.output_features)
   optimizer_enc.zero_grad()
   optimizer_dec.zero_grad()
 
