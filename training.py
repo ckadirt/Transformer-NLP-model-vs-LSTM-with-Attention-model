@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import random
+import tqdm
 
 from utils.create_dataset import LSTM_Dataset
 from utils.LSTM_models import Depth_LSTM, Attention_Decoder
@@ -50,3 +51,11 @@ def batch_train(encoder, decoder, batch, criterion, optimizer_enc, optimizer_dec
 
 
 batch_train(encoder, decoder, batch_test, criterion, optimizer_enc, optimizer_dec, device)
+
+def train_epoch(encoder, decoder, dataset, criterion, optimizer_enc, optimizer_dec, device):
+  for batch in tqdm(dataset):
+    batch_train(encoder, decoder, batch_test, criterion, optimizer_enc, optimizer_dec, device)
+
+def train_model(encoder, decoder, dataset, criterion, optimizer_enc, optimizer_dec, device, epochs):
+  for epoch in epochs:
+    train_epoch(encoder, decoder, dataset, criterion, optimizer_enc, optimizer_dec, device)
