@@ -8,22 +8,23 @@ from torch.utils.data import DataLoader
 import random
 
 class LSTM_single(nn.Module):
-  def __init__(self, out_size, embedding_size = 300):
+  def __init__(self, out_size, embedding_size = 300, device = 'cuda'):
     super(LSTM_single, self).__init__()
     self.out_size = out_size
+    self.device = device
     self.params = self.create_a_layer(embedding_size, out_size)
 
   def create_a_layer(self, input_size, output_size):
     input_size = input_size + output_size
-    w_c = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True)
-    w_u = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True)
-    w_f = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True)
-    w_o = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True)
+    w_c = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True).to(self.device)
+    w_u = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True).to(self.device)
+    w_f = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True).to(self.device)
+    w_o = nn.Parameter(torch.empty(output_size, input_size), requires_grad = True).to(self.device)
 
-    b_c = nn.Parameter(torch.empty(1, output_size), requires_grad = True)
-    b_u = nn.Parameter(torch.empty(1, output_size), requires_grad = True)
-    b_f = nn.Parameter(torch.empty(1, output_size), requires_grad = True)
-    b_o = nn.Parameter(torch.empty(1, output_size), requires_grad = True)
+    b_c = nn.Parameter(torch.empty(1, output_size), requires_grad = True).to(self.device)
+    b_u = nn.Parameter(torch.empty(1, output_size), requires_grad = True).to(self.device)
+    b_f = nn.Parameter(torch.empty(1, output_size), requires_grad = True).to(self.device)
+    b_o = nn.Parameter(torch.empty(1, output_size), requires_grad = True).to(self.device)
 
     nn.init.xavier_uniform_(w_c)
     nn.init.xavier_uniform_(w_u)
@@ -39,15 +40,16 @@ class LSTM_single(nn.Module):
   def forward(self, x_i, a_0, c_0):
     #pass the x embedded (batch, words, embedded)
     params = sorted(self.params.items())
+    c_0 = c_0.to(self.device)
     b_c, b_f, b_o, b_u, w_c, w_f, w_o, w_u = [v[1] for v in params]
-    a_f = torch.zeros(x_i.shape[0],x_i.shape[1],self.out_size)
+    a_f = torch.zeros(x_i.shape[0],x_i.shape[1],self.out_size).to(self.device)
     for tens in range(0,x_i.shape[1]):
-      x = x_i[:,tens,:]
+      x = x_i[:,tens,:].to(self.device)
       x_a_concat = torch.cat([a_0, x], dim = 1).transpose(1,0)
-      candidate = torch.tanh(torch.matmul(w_c, x_a_concat).transpose(1,0) + b_c)
-      g_u = torch.sigmoid(torch.matmul(w_u, x_a_concat).transpose(1,0)+ b_u)
-      g_f = torch.sigmoid(torch.matmul(w_f, x_a_concat).transpose(1,0)+ b_f)
-      g_o = torch.sigmoid(torch.matmul(w_o, x_a_concat).transpose(1,0)+ b_o)
+      candidate = torch.tanh(torch.matmul(w_c, x_a_concat).transpose(1,0) + b_c).to(self.device)
+      g_u = torch.sigmoid(torch.matmul(w_u, x_a_concat).transpose(1,0)+ b_u).to(self.device)
+      g_f = torch.sigmoid(torch.matmul(w_f, x_a_concat).transpose(1,0)+ b_f).to(self.device)
+      g_o = torch.sigmoid(torch.matmul(w_o, x_a_concat).transpose(1,0)+ b_o).to(self.device)
       c_1 = torch.mul(g_u, candidate) + torch.mul(g_f,c_0)
       a_1 = torch.mul(g_o, torch.tanh(c_1))
       
@@ -71,7 +73,7 @@ class LSTM_singlebi(nn.Module):
     return torch.cat([aright, aleft], dim = 2), (a_0r,c_0r, a_0l,c_0l)
 
 class Depth_LSTM(nn.Module):
-  def __init__(self, out_size, depth = 2, embedding_size = 300, vocab_size = 30522):
+  def __init__(self, out_size, depth = 2, embedding_size = 300, vocab_size = 30522, device = 'cuda'):
     super(Depth_LSTM, self).__init__()
     self.out_size = out_size
     self.depth = depth
@@ -80,13 +82,14 @@ class Depth_LSTM(nn.Module):
     self.linears = []
     self.relu = nn.LeakyReLU()
     self.embedding = nn.Embedding(vocab_size, embedding_size)
+    self.device = device
     for a in range(depth):
       if(a == 0):
         self.layers.append(LSTM_singlebi(self.out_size, embedding_size=embedding_size))
       else:
         self.layers.append(LSTM_singlebi(self.out_size, embedding_size=out_size))
     for a in range(depth):
-      self.linears.append(nn.Linear(self.out_size * 2, self.out_size))
+      self.linears.append(nn.Linear(self.out_size * 2, self.out_size).to(self.device))
   
   def forward(self, x, a, c):
     x = self.embedding(x)
@@ -100,19 +103,19 @@ class Depth_LSTM(nn.Module):
     return x
 
 class Context_generator(nn.Module):
-  def __init__(self, s_feat, a_feat, word_len):
+  def __init__(self, s_feat, a_feat, word_len, device = 'cuda'):
     super(Context_generator, self).__init__()
     self.middle = 1000
-    self.linear1 = nn.Linear(s_feat+a_feat, self.middle)
-    self.linear2 = nn.Linear(self.middle, 1)
-    
+    self.linear1 = nn.Linear(s_feat+a_feat, self.middle).to(device)
+    self.linear2 = nn.Linear(self.middle, 1).to(device)
+    self.device = device
     self.relu = nn.ReLU()
     self.tahn = nn.Tanh()
     self.softmax = nn.Softmax(dim = 1)
   def forward(self, s_prev, a):
     # a shape = [batch, num_words, features]
     # s shape = [batch, features]
-    s_prev = s_prev.view(s_prev.shape[0],1, s_prev.shape[1]).repeat(1,a.shape[1],1)
+    s_prev = s_prev.view(s_prev.shape[0],1, s_prev.shape[1]).repeat(1,a.shape[1],1).to(self.device)
     concated = torch.cat([a, s_prev], dim = -1)
     alphas = self.tahn(self.linear1(concated))
     alphas = self.relu(self.linear2(alphas))
@@ -122,25 +125,26 @@ class Context_generator(nn.Module):
 
 
 class Attention_Decoder(nn.Module):
-  def __init__(self, word_len, output_features, a_features):
+  def __init__(self, word_len, output_features, a_features, device = 'cuda'):
     super(Attention_Decoder, self).__init__()
     self.word_len = word_len
     self.output_features = output_features
     self.a_features = a_features
-    self.get_context = Context_generator(s_feat = output_features, a_feat = a_features, word_len = word_len)
-    self.lstm = LSTM_single(output_features, embedding_size = a_features)
+    self.device = device
+    self.get_context = Context_generator(s_feat = output_features, a_feat = a_features, word_len = word_len).to(device)
+    self.lstm = LSTM_single(output_features, embedding_size = a_features).to(device)
 
   def forward(self, a, s_prev, word_output):
     # a = [batches, num_words, output_size features]
     #s_prev = [batches, output_features]
     #word_output = int, num of the word outputs
     final_as = torch.zeros(a.shape[0],word_output,self.output_features)
-    s_prev = s_prev
+    s_prev = s_prev.to(self.device)
     c0 = torch.zeros(a.shape[0],s_prev.shape[-1])
     for word in range(word_output):
       context, alphas = self.get_context(s_prev, a)
       #print(context.shape, s_prev.shape, c0.shape)
       s_prev, s_prevlast, c0 = self.lstm(context, s_prev, c0)
-      s_prev = s_prev.view(a.shape[0],s_prev.shape[-1])
+      s_prev = s_prev.view(a.shape[0],s_prev.shape[-1]).to(self.device)
       #print(s_prev.shape, final_as.shape)
       final_as[:,word,:] = s_prev

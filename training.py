@@ -19,7 +19,7 @@ for batch_test in dataloadtt:
   print(token_to_text(batch_test['y'].int(), test_datas.tokenizer))
   break
 
-device = 'cpu'
+device = 'cuda'
 encoder = Depth_LSTM(400).to(device)
 
 
@@ -27,8 +27,11 @@ criterion = nn.BCELoss()
 optimizer_enc = torch.optim.Adam(encoder.parameters())
 
 
-decoder = Attention_Decoder(128,30522,400)
+decoder = Attention_Decoder(128,10000,400).to(device)
+
 optimizer_dec = torch.optim.Adam(decoder.parameters())
+
+
 
 def batch_train(encoder, decoder, batch, criterion, optimizer_enc, optimizer_dec, device):
   
@@ -36,7 +39,7 @@ def batch_train(encoder, decoder, batch, criterion, optimizer_enc, optimizer_dec
   a_init = torch.zeros(x.shape[0],encoder.out_size).to(device)
   c_init = torch.zeros(x.shape[0],encoder.out_size).to(device)
   y = batch['y'].to(device)
-  y = F.one_hot(y, num_classes=decoder.output_features)
+
   optimizer_enc.zero_grad()
   optimizer_dec.zero_grad()
 
@@ -51,11 +54,3 @@ def batch_train(encoder, decoder, batch, criterion, optimizer_enc, optimizer_dec
 
 
 batch_train(encoder, decoder, batch_test, criterion, optimizer_enc, optimizer_dec, device)
-
-def train_epoch(encoder, decoder, dataset, criterion, optimizer_enc, optimizer_dec, device):
-  for batch in tqdm(dataset):
-    batch_train(encoder, decoder, batch_test, criterion, optimizer_enc, optimizer_dec, device)
-
-def train_model(encoder, decoder, dataset, criterion, optimizer_enc, optimizer_dec, device, epochs):
-  for epoch in epochs:
-    train_epoch(encoder, decoder, dataset, criterion, optimizer_enc, optimizer_dec, device)
