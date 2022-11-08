@@ -35,8 +35,8 @@ def prepare_text(text):
         return arraytext
 
 #defining the tokenizer
-def create_tokenizer(name = 'distilbert-base-uncased'):
-  tokenizer = DistilBertTokenizerFast.from_pretrained(name)
+def create_tokenizer(name = 'distilbert-base-uncased', vocab_size = 10000):
+  tokenizer = DistilBertTokenizerFast.from_pretrained(name, vocab_size = vocab_size)
   return tokenizer
 
 #tokenizing the splited text

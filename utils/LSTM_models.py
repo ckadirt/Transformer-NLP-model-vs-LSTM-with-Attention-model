@@ -148,3 +148,5 @@ class Attention_Decoder(nn.Module):
       s_prev = s_prev.view(a.shape[0],s_prev.shape[-1]).to(self.device)
       #print(s_prev.shape, final_as.shape)
       final_as[:,word,:] = s_prev
+    
+    return final_as
