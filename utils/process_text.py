@@ -2,6 +2,8 @@ import pandas as pd
 from datasets import load_dataset
 from pprint import pprint
 from transformers import DistilBertTokenizerFast
+from transformers import GPT2Tokenizer, RobertaTokenizer, FlaubertTokenizer, XLMTokenizer
+
 
 def split_text(text):
     text = text.split('\n ')
@@ -37,6 +39,9 @@ def prepare_text(text):
 #defining the tokenizer
 def create_tokenizer(name = 'distilbert-base-uncased', vocab_size = 10000):
   tokenizer = DistilBertTokenizerFast.from_pretrained(name, vocab_size = vocab_size)
+  tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+  tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+  tokenizer = XLMTokenizer.from_pretrained('xlm-mlm-en-2048')
   return tokenizer
 
 #tokenizing the splited text
