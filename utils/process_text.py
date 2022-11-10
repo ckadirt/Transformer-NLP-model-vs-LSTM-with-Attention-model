@@ -2,7 +2,7 @@ import pandas as pd
 from datasets import load_dataset
 from pprint import pprint
 from transformers import DistilBertTokenizerFast
-from transformers import GPT2Tokenizer, RobertaTokenizer, FlaubertTokenizer, XLMTokenizer
+from transformers import GPT2Tokenizer, RobertaTokenizer, FlaubertTokenizer, XLMTokenizer, CTRLTokenizer, OpenAIGPTTokenizer, PreTrainedTokenizer
 
 
 def split_text(text):
@@ -37,11 +37,9 @@ def prepare_text(text):
         return arraytext
 
 #defining the tokenizer
-def create_tokenizer(name = 'distilbert-base-uncased', vocab_size = 10000):
+def create_tokenizer(name = 'distilbert-base-uncased-distilled-squad', vocab_size = 10000):
   tokenizer = DistilBertTokenizerFast.from_pretrained(name, vocab_size = vocab_size)
-  tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-  tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-  tokenizer = XLMTokenizer.from_pretrained('xlm-mlm-en-2048')
+
   return tokenizer
 
 #tokenizing the splited text
@@ -54,7 +52,12 @@ def tokenize_function_result(text, tokenizer):
   return tokenized_inputs
 
 def tokenize_plus(text, tokenizer):
-  tokenized_inputs = tokenizer(text)
+  try:
+    tokenized_inputs = tokenizer(text)
+  except:
+    for word in text:
+      tokenizer.add_tokens(word)
+    tokenize_plus(text,tokenizer)
   return tokenized_inputs
 
 #coverting from text or list of text to tokenized inputs
